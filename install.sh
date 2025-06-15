@@ -40,19 +40,20 @@ echo "📁 Setting up Zsh config..."
 # Set Zsh as default shell
 chsh -s "$(which zsh)"
 
-# Copy Zsh config
+# Copy modular config
 mkdir -p ~/.config/zsh
-cp -r zsh/.config/zsh/* ~/.config/zsh/
-cp zsh/.zshenv ~/.zshenv
+cp zsh/*.zsh ~/.config/zsh/
 
-# Clone Powerlevel10k if missing
-if [ ! -d ~/.config/zsh/powerlevel10k ]; then
-  git clone --depth=1 https://github.com/romkatv/powerlevel10k.git ~/.config/zsh/powerlevel10k
-fi
+# Fix theme permissions and remove compiled files
+sudo chown -R $USER:$USER zsh/powerlevel10k
+find zsh/powerlevel10k -name '*.zwc' -delete
+cp -r zsh/powerlevel10k ~/.config/zsh/
+
+# Copy .zshenv
+cp .zshenv ~/.zshenv
 
 echo "📁 Setting up Neovim config..."
-
 mkdir -p ~/.config/nvim
-cp -r nvim/.config/nvim/* ~/.config/nvim/
+cp -r nvim/* ~/.config/nvim/
 
 echo "✅ All done! Set your terminal font to 'Hack Nerd Font' and start Zsh with: zsh"
