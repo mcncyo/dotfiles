@@ -1,9 +1,12 @@
 #!/bin/bash
 set -e
 
+# Make script location-aware
+SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
+
 echo "🔧 Installing base dependencies..."
 sudo apt update
-sudo apt install -y zsh git curl unzip wget neovim fzf
+sudo apt install -y zsh git curl unzip wget neovim fzf tmux
 
 echo "📦 Installing Rust (for eza)..."
 if ! command -v cargo &>/dev/null; then
@@ -42,18 +45,21 @@ chsh -s "$(which zsh)"
 
 # Copy modular config
 mkdir -p ~/.config/zsh
-cp zsh/*.zsh ~/.config/zsh/
+cp "$SCRIPT_DIR/zsh/"*.zsh ~/.config/zsh/
 
 # Fix theme permissions and remove compiled files
-sudo chown -R $USER:$USER zsh/powerlevel10k
-find zsh/powerlevel10k -name '*.zwc' -delete
-cp -r zsh/powerlevel10k ~/.config/zsh/
+sudo chown -R $USER:$USER "$SCRIPT_DIR/zsh/powerlevel10k"
+find "$SCRIPT_DIR/zsh/powerlevel10k" -name '*.zwc' -delete
+cp -r "$SCRIPT_DIR/zsh/powerlevel10k" ~/.config/zsh/
 
 # Copy .zshenv
-cp .zshenv ~/.zshenv
+cp "$SCRIPT_DIR/.zshenv" ~/.zshenv
 
 echo "📁 Setting up Neovim config..."
 mkdir -p ~/.config/nvim
-cp -r nvim/* ~/.config/nvim/
+cp -r "$SCRIPT_DIR/nvim/"* ~/.config/nvim/
+
+echo "📁 Setting up tmux config..."
+cp "$SCRIPT_DIR/.tmux.conf" ~/.tmux.conf
 
 echo "✅ All done! Set your terminal font to 'Hack Nerd Font' and start Zsh with: zsh"
