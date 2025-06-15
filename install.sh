@@ -85,3 +85,36 @@ if command -v tmux &>/dev/null && [ -z "$TMUX" ]; then
 else
   exec zsh
 fi
+
+# 🔁 Set Zsh as default shell for the user
+if [ "$SHELL" != "$(which zsh)" ]; then
+  echo "🔄 Changing default shell to zsh..."
+  chsh -s "$(which zsh)"
+fi
+
+# 🧠 Add tmux + zsh startup to .bashrc for future logins
+BASHRC="$HOME/.bashrc"
+if ! grep -q 'tmux' "$BASHRC"; then
+  echo "✅ Adding tmux + zsh autostart to .bashrc"
+  cat << 'EOF' >> "$BASHRC"
+
+# Start tmux with zsh inside
+if command -v tmux >/dev/null && [ -z "$TMUX" ]; then
+  tmux new-session \; send-keys "zsh" C-m
+fi
+EOF
+fi
+
+# 🚀 Immediate launch: tmux + zsh, fallback to zsh
+if command -v tmux >/dev/null; then
+  if [ -z "$TMUX" ]; then
+    echo "🚀 Launching tmux with zsh now..."
+    exec tmux new-session \; send-keys "zsh" C-m
+  else
+    echo "💡 Already in tmux. Launching zsh..."
+    exec zsh
+  fi
+else
+  echo "⚠️ tmux not found. Launching zsh directly..."
+  exec zsh
+fi
