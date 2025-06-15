@@ -11,9 +11,35 @@ else
   SUDO="sudo"
 fi
 
-echo "🔧 Installing base dependencies..."
-$SUDO apt update
-$SUDO apt install -y zsh git curl unzip wget neovim fzf tmux xclip build-essential
+echo "🔍 Detecting package manager..."
+
+# Set package manager and common install command
+if command -v apt &>/dev/null; then
+  PKG_UPDATE="$SUDO apt update"
+  PKG_INSTALL="$SUDO apt install -y"
+  DEPS="zsh git curl unzip wget neovim fzf tmux xclip build-essential"
+elif command -v dnf &>/dev/null; then
+  PKG_UPDATE="$SUDO dnf makecache"
+  PKG_INSTALL="$SUDO dnf install -y"
+  DEPS="zsh git curl unzip wget neovim fzf tmux xclip @development-tools"
+elif command -v pacman &>/dev/null; then
+  PKG_UPDATE="$SUDO pacman -Sy"
+  PKG_INSTALL="$SUDO pacman -S --noconfirm"
+  DEPS="zsh git curl unzip wget neovim fzf tmux xclip base-devel"
+elif command -v apk &>/dev/null; then
+  PKG_UPDATE="$SUDO apk update"
+  PKG_INSTALL="$SUDO apk add"
+  DEPS="zsh git curl unzip wget neovim fzf tmux xclip build-base"
+else
+  echo "❌ Unsupported package manager"
+  exit 1
+fi
+
+echo "🔧 Updating package lists..."
+eval "$PKG_UPDATE"
+
+echo "📦 Installing base dependencies..."
+eval "$PKG_INSTALL $DEPS"
 
 echo "📦 Installing Rust (for eza)..."
 if ! command -v cargo &>/dev/null; then
@@ -46,4 +72,16 @@ else
   echo "✅ LazyGit already installed"
 fi
 
-echo "✅ Setup complete!"
+# ✅ Set Zsh as the default shell if not already
+if [ "$SHELL" != "$(which zsh)" ]; then
+  echo "🔄 Changing default shell to Zsh..."
+  chsh -s "$(which zsh)" || echo "⚠️ chsh failed (probably running in Docker)."
+fi
+
+# ✅ Auto-start tmux in Zsh if inside interactive terminal
+if command -v tmux &>/dev/null && [ -z "$TMUX" ]; then
+  echo "🚀 Launching tmux inside Zsh..."
+  exec zsh -c "tmux"
+else
+  exec zsh
+fi
