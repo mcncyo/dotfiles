@@ -17,6 +17,7 @@ fi
 # Add Rust to path persistently if installed
 if [ -f "$HOME/.cargo/env" ]; then
   echo 'source "$HOME/.cargo/env"' >> ~/.config/zsh/exports.zsh
+  echo 'export PATH="$HOME/.cargo/bin:$PATH"' >> ~/.config/zsh/exports.zsh
 fi
 
 echo "📦 Installing eza with cargo..."
@@ -57,9 +58,14 @@ echo "📁 Setting up Zsh config..."
 chsh -s "$(which zsh)"
 mkdir -p ~/.config/zsh
 cp "$SCRIPT_DIR/zsh/"*.zsh ~/.config/zsh/
-sudo chown -R $USER:$USER "$SCRIPT_DIR/zsh/powerlevel10k"
-find "$SCRIPT_DIR/zsh/powerlevel10k" -name '*.zwc' -delete
-cp -r "$SCRIPT_DIR/zsh/powerlevel10k" ~/.config/zsh/
+if [ -d "$SCRIPT_DIR/zsh/powerlevel10k" ]; then
+  echo "🎨 Setting up Powerlevel10k theme..."
+  sudo chown -R "$USER:$USER" "$SCRIPT_DIR/zsh/powerlevel10k"
+  find "$SCRIPT_DIR/zsh/powerlevel10k" -name '*.zwc' -delete
+  cp -r "$SCRIPT_DIR/zsh/powerlevel10k" ~/.config/zsh/
+else
+  echo "⚠️  Powerlevel10k theme directory not found. Skipping theme setup."
+fi
 cp "$SCRIPT_DIR/.zshenv" ~/.zshenv
 
 echo "📁 Setting up Neovim config..."
@@ -73,6 +79,15 @@ echo "🧵 Enabling auto-tmux in Zsh..."
 cat << 'EOF' >> ~/.config/zsh/.zshrc
 
 # --- Auto-start tmux on shell or SSH login ---
+# --- Enable 12-hour clock format ---
+export TIMEFMT=$'%D{%I:%M:%S %p}  %J  %P  %*'
+
+# --- Enable copy/paste in terminal (if terminal supports it) ---
+autoload -Uz select-word-style
+select-word-style bash
+bindkey -e
+bindkey '^[[200~' bracketed-paste-begin
+
 if command -v tmux &>/dev/null && [ -z "$TMUX" ] && [ -n "$SSH_CONNECTION" -o -n "$DISPLAY" ]; then
   tmux attach -t main || tmux new -s main
 fi
@@ -111,3 +126,25 @@ sudo ln -sf "$(command -v nvim)" /usr/local/bin/nano
 sudo ln -sf "$(command -v nvim)" /usr/local/bin/pico
 
 echo "🎉 Dotfiles setup complete! Start Zsh or SSH again to enjoy your tmux-powered environment."
+
+echo "🔑 Setting up SSH for GitHub..."
+
+# Generate SSH key if it doesn't exist
+if [ ! -f "$HOME/.ssh/id_ed25519" ]; then
+  ssh-keygen -t ed25519 -C "$GIT_EMAIL" -f "$HOME/.ssh/id_ed25519" -N ""
+  echo "✅ SSH key created. Add this to GitHub:"
+  cat "$HOME/.ssh/id_ed25519.pub"
+else
+  echo "✅ SSH key already exists."
+fi
+
+# Check if dotfiles is a Git repo and SSH is not configured
+if git rev-parse --is-inside-work-tree &>/dev/null; then
+  CURRENT_REMOTE=$(git remote get-url origin)
+  if echo "$CURRENT_REMOTE" | grep -q "^https://"; then
+    echo "🔁 Updating Git remote to use SSH..."
+    SSH_REMOTE=$(echo "$CURRENT_REMOTE" | sed -E 's~https://github.com/~git@github.com:~' | sed 's~\.git$~~')
+    git remote set-url origin "$SSH_REMOTE.git"
+    echo "✅ Remote set to $SSH_REMOTE.git"
+  fi
+fi
