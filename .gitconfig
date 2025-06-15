@@ -1,7 +1,7 @@
 cat << EOF > ~/.gitconfig
 [user]
-  name = Your Name
-  email = your@email.com
+  name = Chris Allen
+  email = chris@chrisallen.us
 [core]
   editor = nvim
 [alias]
