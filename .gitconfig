@@ -1,0 +1,15 @@
+cat << EOF > ~/.gitconfig
+[user]
+  name = Your Name
+  email = your@email.com
+[core]
+  editor = nvim
+[alias]
+  co = checkout
+  st = status
+  ci = commit
+  br = branch
+[init]
+  defaultBranch = main
+EOF
+
