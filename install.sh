@@ -13,7 +13,7 @@ fi
 
 echo "🔧 Installing base dependencies..."
 $SUDO apt update
-$SUDO apt install -y zsh git curl unzip wget neovim fzf tmux xclip
+$SUDO apt install -y zsh git curl unzip wget neovim fzf tmux xclip build-essential
 
 echo "📦 Installing Rust (for eza)..."
 if ! command -v cargo &>/dev/null; then
