@@ -62,4 +62,13 @@ cp -r "$SCRIPT_DIR/nvim/"* ~/.config/nvim/
 echo "📁 Setting up tmux config..."
 cp "$SCRIPT_DIR/.tmux.conf" ~/.tmux.conf
 
+echo "🧵 Enabling auto-tmux in Zsh..."
+cat << 'EOF' >> ~/.config/zsh/.zshrc
+
+# --- Auto-start tmux on shell or SSH login ---
+if command -v tmux &>/dev/null && [ -z "$TMUX" ] && [ -n "$SSH_CONNECTION" -o -n "$DISPLAY" ]; then
+  tmux attach -t main || tmux new -s main
+fi
+EOF
+
 echo "✅ All done! Set your terminal font to 'Hack Nerd Font' and start Zsh with: zsh"
